@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# IDE
+.idea/
+.vscode/
+
+# GAMS scratch / solver output
+*.gdx
+*.lst
+*.log
+225*/
+
+# Pickled checkpoints / results (regenerable)
+*.pkl
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

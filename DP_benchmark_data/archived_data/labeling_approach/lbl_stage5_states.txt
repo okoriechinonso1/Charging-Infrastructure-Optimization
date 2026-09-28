@@ -1,0 +1,6 @@
+# Labeling stage p=5: 4 candidate state(s)
+# format: ({stations}, fleet_size)
+({1, 2, 3, 4, 5}, 10)
+({1, 2, 3, 4, 5}, 9)
+({1, 2, 3, 4}, 10)
+({1, 2, 3, 4}, 9)

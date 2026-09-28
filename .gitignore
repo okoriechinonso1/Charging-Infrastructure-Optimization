@@ -13,9 +13,6 @@ __pycache__/
 *.log
 225*/
 
-# Pickled checkpoints / results (regenerable)
-*.pkl
-
 # OS
 Thumbs.db
 desktop.ini

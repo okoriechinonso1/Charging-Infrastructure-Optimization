@@ -883,7 +883,7 @@ if __name__ == "__main__":
     DEPOT_LOCATION = (12.5, 12.5)      # (x, y) coordinates of the depot
     NUM_COMMUNITIES = 20               # Number of community/customer nodes (randomly placed)
     MIN_DISTANCE = 1.0                 # Minimum distance between nodes (for random generation)
-    RANDOM_SEED = 52                   # Random seed for reproducibility (None for random)
+    RANDOM_SEED = 42                 # Random seed for reproducibility (None for random)
 
     # -------- OPTION 1: Random Charging Stations --------
     # Uncomment these lines to randomly generate charging stations:

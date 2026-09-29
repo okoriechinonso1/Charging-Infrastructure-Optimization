@@ -1,24 +1,24 @@
 # Charging Infrastructure Optimization
 
-Bi-level, multi-period optimization of **charging infrastructure expansion and fleet sizing** for
-electric trucks in **municipal solid waste collection**, with a real-world case study of
+Bi-level, multi-period optimization of **charging infrastructure expansion** for
+electric trucks in **municipal solid waste collection**, with a real-world case study of city of
 Tallahassee, Florida.
 
 ## Problem overview
 
 **Upper level — strategic planning (dynamic program).**
-Over a planning horizon of *P* periods, decide which candidate charging stations are in service
-(*S^p*) and how many electric trucks are owned (*η^p*). A DP state is the pair `(S^p, η^p)`,
+Over a planning horizon of *P* periods, a municipal planner decides which candidate charging stations are in service
+(*S^p*) and how many electric trucks are procured (*η^p*). A DP state is the pair `(S^p, η^p)`,
 e.g. `({1, 3, 5}, 13)`. Stations are never closed and the fleet never shrinks
-(`S^{p-1} ⊆ S^p`, `η^{p-1} ≤ η^p`). Each stage's cost is
+(`S^{p-1} ⊆ S^p`, `η^{p-1} ≤ η^p`). Each stage's cost is:
 
 - capital cost λ of newly built stations,
 - fixed service cost γ of every in-service station,
 - fleet procurement cost *f^p* · (*η^p* − *η^{p-1}*), and
 - operating cost μ(*S^p*, *η^p*) scaled by the days in the period, obtained from the lower level.
 
-**Lower level — operational routing and charging (MIP).**
-An electric vehicle routing problem (EVRP) with capacity, battery range, and tour-duration limits.
+**Lower level — joint routing and charging optimization problem (MIP).**
+An electric vehicle routing problem (EVRP) with vehicle capacity, driving range (or battery capacity), and minimum charging time limits.
 Charging is modelled through **charging arcs** (`C+ → C-`), each with a charging rate α and cost
 coefficient β1. Models are written in GAMS and solved with Gurobi.
 
@@ -102,6 +102,7 @@ from the `STADIA_API_KEY` environment variable.
 ## Author
 
 Chinonso Okorie — Florida A&M University (chinonso1.okorie@famu.edu)
+Graduate Research Assistant & PhD Candidate in Industrial Engineering
 
 ## License
 

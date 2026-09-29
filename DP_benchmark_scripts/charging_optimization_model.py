@@ -518,14 +518,14 @@ def charging_problem(evrp_main_data, service_time_file, waste_demand_file, nodes
     # export_path = os.path.join(current_directory, "out_GamsDatabase.gdx")
     # db.export(export_path)
 
-    # if not (job.out_db["ms"].find_record().value == 1 and job.out_db["ss"].find_record().value == 1):
-    #     pass
-    if not (job.out_db["ms"].find_record().value == 1 or job.out_db["ms"].find_record().value == 8) and (job.out_db["ss"].find_record().value == 1 or job.out_db["ss"].find_record().value == 3):
+    if not (job.out_db["ms"].find_record().value == 1 and job.out_db["ss"].find_record().value == 1):
         pass
+    # if not (job.out_db["ms"].find_record().value == 1 or job.out_db["ms"].find_record().value == 8) and (job.out_db["ss"].find_record().value == 1 or job.out_db["ss"].find_record().value == 3):
+    #     pass
 
         # raise ValueError('MIP Model is infeasible')
-    # feasible = job.out_db["ms"].find_record().value == 1 and job.out_db["ss"].find_record().value == 1
-    feasible = (job.out_db["ms"].find_record().value == 1 or job.out_db["ms"].find_record().value == 8) and (job.out_db["ss"].find_record().value == 1 or job.out_db["ss"].find_record().value == 3)
+    feasible = job.out_db["ms"].find_record().value == 1 and job.out_db["ss"].find_record().value == 1
+    # feasible = (job.out_db["ms"].find_record().value == 1 or job.out_db["ms"].find_record().value == 8) and (job.out_db["ss"].find_record().value == 1 or job.out_db["ss"].find_record().value == 3)
     dict_computation_time = {}
     dict_obj_beneficial = {}
 

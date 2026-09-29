@@ -462,7 +462,7 @@ def generate_routes(node_file_path, travel_data_file_path,
     unit_charge_cost = 2.45    # cost per unit of charge (currently muted) #Parameter not used
     charge_rate      = 0.5     # miles per minute charging rate #Parameter not used
     min_charge_time  = 10       # minimum charging duration (minutes) #Parameter not used
-    max_driving_range = 16000  # battery capacity (miles) #Parameter not used
+    max_driving_range = 1600  # battery capacity (miles) #Parameter not used
     min_driving_range = 10     # minimum allowable SoC (miles) #Parameter not used
     fleet_size        = 10 #Parameter not used
     truck_cap         = 20000  # lbs

@@ -19,14 +19,14 @@ def main():
     # CONFIGURATION — change only these values per run
     # ================================================================
 
-    PERIOD        = 3          # planning period (1 to 5)
-    FLEET_SIZE    = 7          # fleet size for this run
+    PERIOD        = 1          # planning period (1 to 5)
+    FLEET_SIZE    = 5          # fleet size for this run
     NUM_ROUTES    = None        # None -> number of route_*_aug_travel.csv files in the folder
     DAYS_PER_PERIOD = 1000
 
 
     # Physical parameters
-    DRIVING_RANGE    = 150
+    DRIVING_RANGE    = 160
     TOUR_DURATION    = 480
     VEHICLE_CAPACITY = 20000
     DEPOT            = '151'

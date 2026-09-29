@@ -189,7 +189,7 @@ def solve_dp_states(
         charging_arc_params_path: str,
         days_per_period: float,
         num_routes: Optional[int] = None,
-        driving_range: float = 150,
+        driving_range: float = 160,
         tour_duration: float = 480,
         vehicle_capacity: float = 20000,
         depot: str = '151',

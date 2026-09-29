@@ -115,7 +115,10 @@ def main():
     PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     DATA_ROOT = os.path.join(PROJECT_ROOT, "DP_FullScale_data")
 
-    subfolder_name = 'second'   # 'first', 'second', ..., 'ninth' or 'tenth'
+    # ------------------------------------------------------------------ #
+    # Change subfolder name to generate CG routes and charging network for a period instance
+    # ------------------------------------------------------------------ #
+    subfolder_name = 'first'   # 'first', 'second', ..., 'ninth' or 'tenth'
     folder = os.path.join(DATA_ROOT, f"{subfolder_name}_period")
 
     node_path    = os.path.join(folder, f"{subfolder_name}_period_nodes.csv")

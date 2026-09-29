@@ -1,3 +1,0 @@
-from_node ID,to_node ID,start_lat,start_lon,end_lat,end_lon
-151,47,30.4531,-84.3531,30.4875,-84.3368
-47,151,30.4875,-84.3368,30.4531,-84.3531

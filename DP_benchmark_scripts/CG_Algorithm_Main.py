@@ -1,7 +1,7 @@
 import os
 import CG_Algorithm as mf
 from gams import *
-import augument_route_network as augment
+import augment_route_network as augment
 import pandas as pd
 
 
@@ -114,6 +114,7 @@ def main():
     PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     DATA_ROOT = os.path.join(PROJECT_ROOT, "DP_benchmark_data")
 
+    "Change subfolder name to generate CG routes and charging network for a period instance"
     subfolder_name = 'first'   # 'first', 'second', 'third', 'fourth' or 'fifth'
     folder = os.path.join(DATA_ROOT, f"{subfolder_name}_period")
 
@@ -143,8 +144,9 @@ def main():
             f"(available: {sorted(available_links)})"
         )
 
+    "Vary fleet size numbers based on your choices"
     # Fleet sizes to solve for this period -- edit this list per run.
-    fleet_sizes = [5, 6, 7, 8, 9, 10] #, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
+    fleet_sizes = [5, 6, 7, 8, 9, 10]
 
 
     # ------------------------------------------------------------------ #

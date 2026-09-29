@@ -1,3 +1,0 @@
-from_node ID,to_node ID,Distance (miles),Time (minutes)
-151,47,17.97,43.13
-47,151,17.97,43.13

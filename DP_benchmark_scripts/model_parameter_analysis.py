@@ -81,7 +81,7 @@ def generate_travel_parameters(nodes_file_path: str, links_file_path: str, trave
         lon1, lat1 = node_coordinates[from_node]
         lon2, lat2 = node_coordinates[to_node]
         base_distance = haversine_distance(lat1, lon1, lat2, lon2)
-        scaled_distance = base_distance  * 6.5
+        scaled_distance = base_distance  * 7
 
         # rand_speed_mph = np.random.uniform(20, 25)
         # speed_mpm = rand_speed_mph / 60

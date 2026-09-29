@@ -1246,7 +1246,7 @@ CHARGING_OPT_ARC_PARAMS_PATH        = os.path.join(DATA_ROOT, "{period_name}", "
 # Physical parameters forwarded to run_charging_optimization.solve_dp_states.
 # Leave this empty ({}) to use solve_dp_states' own defaults instead.
 CHARGING_OPT_SOLVER_KWARGS: Dict = {
-    "driving_range": 150,
+    "driving_range": 160,
     "tour_duration": 480,
     "vehicle_capacity": 20000,
     "depot": "151",
@@ -1961,7 +1961,7 @@ if __name__ == "__main__":
         allowed_fleet_sizes=allowed_fleet_sizes,
         E_bar=E_bar,
         E0=E0,
-        out_path=os.path.join(FIGURES_DIR, "Optimal_path_labeling_fullscale_v2.pdf"),
+        out_path=os.path.join(FIGURES_DIR, "Optimal_path_labeling_FullScale.pdf"),
         configs_universe=used_configs,
         period_floor_source=period_floor_source,
     )

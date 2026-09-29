@@ -40,7 +40,7 @@ data generation ──► route generation (column generation) ──► chargin
    `synthetic_data_generation.py` builds nodes, links, travel data, service times and waste demand.
 2. **Route generation** — `CG_Algorithm_Main.py` builds a route pool (Phase 1) and selects routes
    for each fleet size with a MIP (Phase 2); results go to `CG_route_exports/`.
-3. **Charging augmentation** — `augument_route_network.py` inserts the open charging arcs into each
+3. **Charging augmentation** — `augment_route_network.py` inserts the open charging arcs into each
    route; results go to `augmented_routes_for_charging/`.
 4. **Charging-second optimization** — `charging_optimization_model.py` fixes each route and
    optimizes charging. `benchmark_main.py` / `Run_charging_optimization.py` loop this over DP

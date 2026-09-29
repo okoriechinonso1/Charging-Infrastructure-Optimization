@@ -6,18 +6,16 @@ from matplotlib.lines import Line2D
 import numpy as np
 import math
 
-# Route figures go inside each period folder: <period folder>/Figures/
-# (not fleet-size specific, since CG generates the same routes for every
-# fleet size). FIGURES_DIR (<project root>/Figures) is only used by the
-# standalone plot_network_with_* functions, which are not tied to a period folder.
+# Route figures go inside each period folder: <period folder>/Figures_<fleet size>/
+# FIGURES_DIR (<project root>/Figures) is only used by the standalone
+# plot_network_with_* functions, which are not tied to a period folder.
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIGURES_DIR = os.path.join(PROJECT_ROOT, "Figures")
 
 
 def _figures_folder(folder, id):
-    """Figure output folder for one period (folder). id (fleet size) is
-    accepted for call compatibility but no longer used in the folder name."""
-    out_dir = os.path.join(folder, "Figures")
+    """Figure output folder for one period (folder) and fleet size (id)."""
+    out_dir = os.path.join(folder, f"Figures_{id}")
     os.makedirs(out_dir, exist_ok=True)
     return out_dir
 

@@ -702,6 +702,294 @@ def plot_dp_network(res: DPResult, out_path: str) -> None:
 
 
 "For intermediate case analysis"
+# def plot_dp_network_3d(
+#         res,
+#         allowed_fleet_sizes,
+#         E_bar,                          # full candidate station set
+#         E0,                             # base in-service stations
+#         out_path: str,
+#         configs_universe: Optional[Set[StationConfig]] = None,
+#         period_floor_source: Optional[Dict[int, List[DP_State]]] = None,   # <-- NEW
+# ) -> None:
+#
+#     import numpy as np
+#     import matplotlib.pyplot as plt
+#     import matplotlib.patches as mpatches
+#     from matplotlib.collections import LineCollection
+#     from matplotlib.transforms import offset_copy
+#
+#     is_labeling = res.algorithm_type == "labeling"
+#
+#     # ---- per-period states to draw: EVERY state evaluated in that stage
+#     # (res.psi[p] = all candidates whose lower-level problem was solved,
+#     # before dominance pruning), not only the non-dominated survivors. ----
+#     per_period_states = {period: list(table.keys()) for period, table in res.psi.items()}
+#
+#     # ---- survivors of dominance pruning (res.Pi[p]). Only these are expanded
+#     # into stage p+1, so they are the only valid tails of transition edges. ----
+#     survivors = {}
+#     for period in per_period_states:
+#         if is_labeling and res.Pi is not None and period in res.Pi:
+#             survivors[period] = set(res.Pi[period].keys())
+#         else:
+#             survivors[period] = set(per_period_states[period])
+#
+#     PRUNED_ALPHA = 1.0   # opacity of evaluated-but-dominated nodes; e.g. 0.35 to fade them
+#
+#     periods_sorted = sorted(per_period_states)
+#     P = max(periods_sorted)
+#     initial_period = min(periods_sorted)
+#
+#     fleet_sorted = sorted(allowed_fleet_sizes)
+#     NODE_EI_OFFSET = 0.3  # shifts all node fleet-size positions away from the
+#                             # z-axis origin, so the smallest fleet size (ei=0)
+#                             # no longer sits directly on the axis line
+#     eta_index = {eta: i + NODE_EI_OFFSET for i, eta in enumerate(fleet_sorted)}
+#     n_e = len(fleet_sorted)
+#
+#     if configs_universe is not None:
+#         sorted_configs = sorted(
+#             configs_universe,
+#             key=lambda S: (len(S), tuple(sorted(S, key=lambda x: int(x))))
+#         )
+#     else:
+#         sorted_configs = sorted(
+#             feasible_station_configs(E_bar, E0),
+#             key=lambda S: (len(S), tuple(sorted(S, key=lambda x: int(x))))
+#         )
+#     config_level = {S: i for i, S in enumerate(sorted_configs)}
+#     level_min = 0
+#     level_max = max(len(sorted_configs) - 1, 0)
+#
+#
+#     BASE_FLEET_COLOR_BY_VALUE = {
+#         5: '#FFA500',  # orange
+#         6: '#228B22',  # green
+#         7: '#1E90FF',  # blue
+#         8: '#DC143C',  # red
+#         9: '#8B4513',  # brown
+#         10: '#006400',  # dark green
+#         11: '#9467bd',  # purple
+#         12: '#ff9896',  # light red
+#         13: '#f7b6d2',  # light pink
+#         14: '#c5b0d5',  # light purple
+#         15: '#ffbb78',  # light orange
+#         16: '#c49c94',  # light brown
+#         17: '#e377c2',  # pink
+#         18: '#aec7e8',  # light blue
+#         19: '#7f7f7f',  # gray
+#         20: '#bcbd22',  # olive
+#         21: '#dbdb8d',  # light olive
+#         22: '#17becf',  # cyan
+#         23: '#9edae5',  # light cyan
+#         24: '#393b79',  # dark indigo
+#         25: '#8B4513',  # saddle brown (from your original)
+#     }
+#     EXTRA_PALETTE = ['#008B8B', '#556B2F', '#4682B4',
+#                       '#A0522D', '#2F4F4F', '#B8860B', '#800000', ]
+#     fleet_color_by_value = {}
+#     extra_i = 0
+#     for eta in fleet_sorted:
+#         if eta in BASE_FLEET_COLOR_BY_VALUE:
+#             fleet_color_by_value[eta] = BASE_FLEET_COLOR_BY_VALUE[eta]
+#         else:
+#             fleet_color_by_value[eta] = EXTRA_PALETTE[extra_i % len(EXTRA_PALETTE)]
+#             extra_i += 1
+#
+#     PATH_COLOR = '#5B0EA6'
+#
+#     angle = np.radians(35)
+#     v_p = np.array([1.0, 0.0])
+#     v_s = np.array([0.0, 1.0])
+#     v_e = np.array([np.cos(angle), np.sin(angle)])
+#
+#     NODE_R = 0.35 #0.45 #
+#
+#     # Same fixed spacing as the sample illustration -- sp_p, sp_s, sp_e are
+#     # plain constants, not dynamically adjusted.
+#     sp_p = 10.0 #10.0 #
+#     sp_s = 1.0 #1.0 #0.6
+#     sp_e =  1.4 #1.4 #
+#
+#     JITTER_R = 0.11 * 0.4
+#
+#     # ---- small deliberate downward offset for stage-1 nodes only (cosmetic) ----
+#     STAGE1_Y_OFFSET = -0.00
+#     stage1_period = periods_sorted[1] if len(periods_sorted) > 1 else None
+#
+#     period_floor = {}
+#     for period in periods_sorted:
+#         if period_floor_source is not None and period in period_floor_source:
+#             source_states = period_floor_source[period]
+#         else:
+#             source_states = per_period_states[period]
+#         levels_here = ([config_level[S] for (S, _eta) in source_states]
+#                        + [config_level[S] for (S, _eta) in per_period_states[period]])
+#         period_floor[period] = min(levels_here) if levels_here else level_min
+#
+#     # False -> every period uses the same vertical scale (level 0 at the x-axis),
+#     # so a station configuration sits at the same height in every period, as in
+#     # the original brute-force/labeling figures. True -> re-base each period to
+#     # its lowest drawn configuration (the old period_floor_source behaviour).
+#     REBASE_FLOORS = False
+#     if not REBASE_FLOORS:
+#         period_floor = {period: level_min for period in periods_sorted}
+#
+#     def proj(p, level, ei):
+#         floor = period_floor.get(p, level_min)
+#         base = p * sp_p * v_p + (level - floor) * sp_s * v_s + ei * sp_e * v_e
+#         if stage1_period is not None and p == stage1_period:
+#             base = base + STAGE1_Y_OFFSET * v_s
+#         return base
+#
+#     # ---- group real states by (level, eta_idx). With global per-config
+#     # levels this slot is now unique per state, so jitter should not
+#     # normally trigger -- kept only as a defensive fallback. ----
+#     def slot_positions(period):
+#         groups = {}
+#         for state in per_period_states[period]:
+#             S, eta = state
+#             slot = (config_level[S], eta_index[eta])
+#             groups.setdefault(slot, []).append(state)
+#
+#         out = {}
+#         for slot, states in groups.items():
+#             base_xy = proj(period, *slot)
+#             n = len(states)
+#             entries = []
+#             if n == 1:
+#                 entries.append((states[0], base_xy))
+#             else:
+#                 for k, state in enumerate(states):
+#                     theta = 2 * np.pi * k / n
+#                     offset = JITTER_R * np.array([np.cos(theta), np.sin(theta)])
+#                     entries.append((state, base_xy + offset))
+#             out[slot] = entries
+#         return out
+#
+#     period_slot_positions = {period: slot_positions(period) for period in periods_sorted}
+#
+#     EDGE_LW = 0.9
+#     EDGE_COL = '#aaaaaa'
+#
+#     fig, ax = plt.subplots(figsize=(35, 24), facecolor='white')
+#     ax.set_aspect('equal')
+#     ax.axis('off')
+#
+#     O = proj(initial_period, level_min, 0) + np.array([-0.2, -0.4]) - np.array([sp_p, 0.0])
+#
+#     # exact real state -> rendered xy lookup, for edge drawing and path highlighting
+#     state_xy = {}
+#     for period in periods_sorted:
+#         for slot, entries in period_slot_positions[period].items():
+#             for state, xy in entries:
+#                 state_xy[(period, state)] = xy
+#
+#     # ---- background transition edges (real feasibility, using actual
+#     # rendered positions) ----
+#     fan_segs = []
+#     for i in range(len(periods_sorted) - 1):
+#         p0, p1 = periods_sorted[i], periods_sorted[i + 1]
+#         for prev_state in survivors[p0]:          # only survivors are expanded
+#             for curr_state in per_period_states[p1]:
+#                 if not transition_feasible(prev_state, curr_state):
+#                     continue
+#                 fan_segs.append([state_xy[(p0, prev_state)], state_xy[(p1, curr_state)]])
+#
+#     ax.add_collection(LineCollection(fan_segs, colors=EDGE_COL,
+#                                       linewidths=EDGE_LW, alpha=0.45, zorder=1))
+#
+#     # ---- optimal path: match by REAL STATE identity, not projected slot ----
+#     opt_real_states = set(res.path)  # {(period, state), ...}
+#
+#     # ---- nodes per period ----
+#     for period in reversed(periods_sorted):
+#         zb = (P - period + 1) * 30
+#
+#         if period != initial_period:
+#             c0 = proj(period, level_min, 0)
+#             c1 = proj(period, level_min, n_e - 1)
+#             c2 = proj(period, level_max, n_e - 1)
+#             c3 = proj(period, level_max, 0)
+#             poly = mpatches.Polygon([c0, c1, c2, c3], closed=True,
+#                                      facecolor='#c8c4dc', edgecolor='none',
+#                                      alpha=0.12, zorder=zb)
+#             ax.add_patch(poly)
+#
+#         for slot, entries in period_slot_positions[period].items():
+#             for state, xy in entries:
+#                 is_path_node = (period, state) in opt_real_states
+#                 S, eta = state
+#                 if is_path_node:
+#                     fill = PATH_COLOR
+#                     edge_color = PATH_COLOR
+#                     edge_lw = 1.0
+#                 else:
+#                     fill = fleet_color_by_value[eta]
+#                     edge_color = '#222'
+#                     edge_lw = 0.8
+#                 circ = mpatches.Circle(xy, radius=NODE_R, facecolor=fill,
+#                                         edgecolor=edge_color, linewidth=edge_lw,
+#                                         alpha=1.0 if state in survivors[period] else PRUNED_ALPHA,
+#                                         zorder=950 if is_path_node else zb + 3)
+#                 ax.add_patch(circ)
+#
+#     # ---- optimal path edges (via real rendered positions) ----
+#     path_xy = [state_xy[(p, s)] for p, s in res.path]
+#     for i in range(len(path_xy) - 1):
+#         a, b = path_xy[i], path_xy[i + 1]
+#         ax.plot([a[0], b[0]], [a[1], b[1]], color=PATH_COLOR, lw=4.5,
+#                 alpha=0.5, zorder=895, solid_capstyle='round')
+#
+#     aw = dict(arrowstyle='->', color='#000', lw=2.2, mutation_scale=18)
+#
+#     # ---- x-axis (DP stage) ----
+#     tip_p = np.array([proj(P, level_min, 0)[0] + sp_p * 0.8, O[1]])
+#     ax.annotate('', xy=tip_p, xytext=O, arrowprops=aw, zorder=999,
+#                 annotation_clip=False)
+#     mid_p = np.array([(O[0] + tip_p[0]) / 2, O[1]])
+#
+#     # ---- z-axis (fleet size) ----
+#     tip_e = O + (n_e - 1 + 0.8) * sp_e * v_e
+#     ax.annotate('', xy=tip_e, xytext=O, arrowprops=aw, zorder=999,
+#                 annotation_clip=False)
+#     rot_e = np.degrees(np.arctan2(v_e[1], v_e[0]))
+#     tip_e_label = O + (n_e - 1 + 1.1) * sp_e * v_e
+#     ax.text(tip_e_label[0] + 0.1, tip_e_label[1] + 0.05,
+#             'Fleet Size ($\\eta^p$)', ha='left', va='bottom',
+#             fontsize=25, rotation=rot_e)
+#
+#     SHOW_ZTICK_LABELS = False  # set True to draw the fleet-size tick values again
+#     perp_e = np.array([v_e[1], -v_e[0]])
+#     TICK_LABEL_GAP = 0.38
+#     TICK_LABEL_ROTATION_EXTRA = 30  # extra tilt on top of rot_e to reduce label crowding
+#     if SHOW_ZTICK_LABELS:
+#         for ei, eta_val in enumerate(fleet_sorted):
+#             tick_pos = O + ei * sp_e * v_e
+#             anchor = tick_pos + (0.35 * sp_e * v_e if ei == 0 else 0)
+#             label_pos = anchor + perp_e * TICK_LABEL_GAP
+#             ax.text(label_pos[0], label_pos[1], str(eta_val),
+#                     ha='center', va='center', fontsize=12, color='#333',
+#                     rotation=rot_e + TICK_LABEL_ROTATION_EXTRA, zorder=999)
+#
+#     # ---- y-axis (distinct station configurations) ----
+#     tip_s = O + (level_max - level_min + 0.8) * sp_s * v_s
+#     ax.annotate('', xy=tip_s, xytext=O, arrowprops=aw, zorder=999,
+#                 annotation_clip=False)
+#     mid_s = O + (level_max - level_min) / 2 * sp_s * v_s
+#     ax.text(mid_s[0] - 0.4, mid_s[1], 'Charging Station Config. ($|S^p|$)',
+#             ha='right', va='center', fontsize=25, rotation=90)
+#
+#     ax.autoscale_view()
+#     xl = ax.get_xlim()
+#     yl = ax.get_ylim()
+#     ax.set_xlim(xl[0] - 4.0, xl[1] + 2.5)
+#     ax.set_ylim(O[1] - 0.5, yl[1] + 2.5)   # clip everything below the x-axis; labels are placed in points
+#     plt.tight_layout()
+
+
+
+
 def plot_dp_network_3d(
         res,
         allowed_fleet_sizes,
@@ -716,25 +1004,16 @@ def plot_dp_network_3d(
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
     from matplotlib.collections import LineCollection
-    from matplotlib.transforms import offset_copy
 
     is_labeling = res.algorithm_type == "labeling"
 
-    # ---- per-period states to draw: EVERY state evaluated in that stage
-    # (res.psi[p] = all candidates whose lower-level problem was solved,
-    # before dominance pruning), not only the non-dominated survivors. ----
-    per_period_states = {period: list(table.keys()) for period, table in res.psi.items()}
-
-    # ---- survivors of dominance pruning (res.Pi[p]). Only these are expanded
-    # into stage p+1, so they are the only valid tails of transition edges. ----
-    survivors = {}
-    for period in per_period_states:
+    # ---- per-period states actually carried (same convention as plot_dp_network) ----
+    per_period_states = {}
+    for period, table in res.psi.items():
         if is_labeling and res.Pi is not None and period in res.Pi:
-            survivors[period] = set(res.Pi[period].keys())
+            per_period_states[period] = list(res.Pi[period].keys())
         else:
-            survivors[period] = set(per_period_states[period])
-
-    PRUNED_ALPHA = 1.0   # opacity of evaluated-but-dominated nodes; e.g. 0.35 to fade them
+            per_period_states[period] = list(table.keys())
 
     periods_sorted = sorted(per_period_states)
     P = max(periods_sorted)
@@ -760,7 +1039,6 @@ def plot_dp_network_3d(
     config_level = {S: i for i, S in enumerate(sorted_configs)}
     level_min = 0
     level_max = max(len(sorted_configs) - 1, 0)
-
 
     BASE_FLEET_COLOR_BY_VALUE = {
         5: '#FFA500',  # orange
@@ -803,13 +1081,13 @@ def plot_dp_network_3d(
     v_s = np.array([0.0, 1.0])
     v_e = np.array([np.cos(angle), np.sin(angle)])
 
-    NODE_R = 0.35 #0.45 #
+    NODE_R = 0.40 #0.35
 
     # Same fixed spacing as the sample illustration -- sp_p, sp_s, sp_e are
     # plain constants, not dynamically adjusted.
     sp_p = 10.0 #10.0 #
     sp_s = 1.0 #1.0 #0.6
-    sp_e =  1.4 #1.4 #
+    sp_e =  1.0 #1.4 #
 
     JITTER_R = 0.11 * 0.4
 
@@ -823,17 +1101,8 @@ def plot_dp_network_3d(
             source_states = period_floor_source[period]
         else:
             source_states = per_period_states[period]
-        levels_here = ([config_level[S] for (S, _eta) in source_states]
-                       + [config_level[S] for (S, _eta) in per_period_states[period]])
+        levels_here = [config_level[S] for (S, _eta) in source_states]
         period_floor[period] = min(levels_here) if levels_here else level_min
-
-    # False -> every period uses the same vertical scale (level 0 at the x-axis),
-    # so a station configuration sits at the same height in every period, as in
-    # the original brute-force/labeling figures. True -> re-base each period to
-    # its lowest drawn configuration (the old period_floor_source behaviour).
-    REBASE_FLOORS = False
-    if not REBASE_FLOORS:
-        period_floor = {period: level_min for period in periods_sorted}
 
     def proj(p, level, ei):
         floor = period_floor.get(p, level_min)
@@ -890,7 +1159,7 @@ def plot_dp_network_3d(
     fan_segs = []
     for i in range(len(periods_sorted) - 1):
         p0, p1 = periods_sorted[i], periods_sorted[i + 1]
-        for prev_state in survivors[p0]:          # only survivors are expanded
+        for prev_state in per_period_states[p0]:
             for curr_state in per_period_states[p1]:
                 if not transition_feasible(prev_state, curr_state):
                     continue
@@ -930,9 +1199,53 @@ def plot_dp_network_3d(
                     edge_lw = 0.8
                 circ = mpatches.Circle(xy, radius=NODE_R, facecolor=fill,
                                         edgecolor=edge_color, linewidth=edge_lw,
-                                        alpha=1.0 if state in survivors[period] else PRUNED_ALPHA,
                                         zorder=950 if is_path_node else zb + 3)
                 ax.add_patch(circ)
+
+        bot = proj(period, level_min, 0)
+        ax.text(bot[0], O[1] - 0.15, f'${period}$', ha='center', va='top',
+                fontsize=30, color='#333', zorder=zb + 4)
+
+    # ---- per-period "what changed" annotation + in-service station config ----
+    for idx in range(1, len(res.path)):
+        period, curr_state = res.path[idx]
+        _, prev_state = res.path[idx - 1]
+        S_curr, eta_curr = curr_state
+        S_prev, eta_prev = prev_state
+        n_new_stations = len(S_curr.difference(S_prev))
+        n_new_ets = eta_curr - eta_prev
+
+        if n_new_stations == 0 and n_new_ets == 0:
+            label = "No change"
+        elif n_new_stations == 0:
+            label = f"{n_new_ets} new ET" + ("s" if n_new_ets != 1 else "")
+        elif n_new_ets == 0:
+            label = f"{n_new_stations} new station" + ("s" if n_new_stations != 1 else "")
+        else:
+            label = (f"{n_new_ets} new ET{'s' if n_new_ets != 1 else ''} and\n"
+                     f"{n_new_stations} new station{'s' if n_new_stations != 1 else ''}")
+
+        state_str = ("({" + ", ".join(sorted(S_curr, key=lambda x: int(x))) + "}, "
+                     + str(eta_curr) + ")")
+
+        bot = proj(period, level_min, 0)
+        arrow_color = fleet_color_by_value[eta_curr]
+        zb = (P - period + 1) * 30
+
+
+    ########################################################################################
+        arrow_top = (bot[0], O[1] - 1.0)  # was 1.2
+        arrow_bottom = (bot[0], O[1] - 3.0)  # was 2.6 -- arrow length now 1.0
+        ax.annotate('', xy=arrow_bottom, xytext=arrow_top,
+                    arrowprops=dict(arrowstyle='->', color=arrow_color,
+                                    lw=3.2, mutation_scale=18),
+                    zorder=zb + 4)
+        ax.text(bot[0], O[1] - 3.8, label, ha='center', va='top',  # was 4.6
+                fontsize=23, color='#222', zorder=zb + 4, style='italic')
+        ax.text(bot[0], O[1] - 5.3, state_str, ha='center', va='top',  # was 8.2
+                fontsize=25, color='#222', zorder=zb + 4)
+    ax.text(O[0], O[1] - 0.15, f'${initial_period - 1}$', ha='center', va='top',
+            fontsize=20, color='#333', zorder=999)
 
     # ---- optimal path edges (via real rendered positions) ----
     path_xy = [state_xy[(p, s)] for p, s in res.path]
@@ -943,13 +1256,54 @@ def plot_dp_network_3d(
 
     aw = dict(arrowstyle='->', color='#000', lw=2.2, mutation_scale=18)
 
-    # ---- x-axis (DP stage) ----
+    """
+    ---- x-axis (DP stage) ----
+    """
     tip_p = np.array([proj(P, level_min, 0)[0] + sp_p * 0.8, O[1]])
     ax.annotate('', xy=tip_p, xytext=O, arrowprops=aw, zorder=999,
                 annotation_clip=False)
     mid_p = np.array([(O[0] + tip_p[0]) / 2, O[1]])
+    # ax.text(mid_p[0], mid_p[1] - 8.0, 'DP Stage  (Planning Period)',
+    #         ha='center', va='top', fontsize=25)
 
-    # ---- z-axis (fleet size) ----
+    ax.text(mid_p[0], mid_p[1] - 9.0, 'DP Stage  (Planning Period)',  # was 11.8
+            ha='center', va='top', fontsize=25)
+
+    # ##########################################################################################
+    #     arrow_top = (bot[0], O[1] - 1.0)  # was 1.2
+    #     arrow_bottom = (bot[0], O[1] - 3.0)  # was 2.6 -- arrow length now 1.0
+    #     ax.annotate('', xy=arrow_bottom, xytext=arrow_top,
+    #                 arrowprops=dict(arrowstyle='->', color=arrow_color,
+    #                                 lw=3.2, mutation_scale=18),
+    #                 zorder=zb + 4)
+    #     ax.text(bot[0], O[1] - 3.8, label, ha='center', va='top',  # was 4.6
+    #             fontsize=23, color='#222', zorder=zb + 4, style='italic')
+    #     ax.text(bot[0], O[1] - 5.3, state_str, ha='center', va='top',  # was 8.2
+    #             fontsize=25, color='#222', zorder=zb + 4)
+    #
+    # ax.text(O[0], O[1] - 0.15, f'${initial_period - 1}$', ha='center', va='top',
+    #         fontsize=16, color='#333', zorder=999)
+    #
+    # # ---- optimal path edges (via real rendered positions) ----
+    # path_xy = [state_xy[(p, s)] for p, s in res.path]
+    # for i in range(len(path_xy) - 1):
+    #     a, b = path_xy[i], path_xy[i + 1]
+    #     ax.plot([a[0], b[0]], [a[1], b[1]], color=PATH_COLOR, lw=4.5,
+    #             alpha=0.5, zorder=895, solid_capstyle='round')
+    #
+    # aw = dict(arrowstyle='->', color='#000', lw=2.2, mutation_scale=18)
+    #
+    # # ---- x-axis (DP stage) ----
+    # tip_p = np.array([proj(P, level_min, 0)[0] + sp_p * 0.8, O[1]])
+    # ax.annotate('', xy=tip_p, xytext=O, arrowprops=aw, zorder=999,
+    #             annotation_clip=False)
+    # mid_p = np.array([(O[0] + tip_p[0]) / 2, O[1]])
+    #
+    # ax.text(mid_p[0], mid_p[1] - 10.2, 'DP Stage  (Planning Period)',  # was 9.0
+    #         ha='center', va='top', fontsize=25)
+    ##############################################################################
+
+    # ---- z-axis (fleet size) -- with actual value ticks ----
     tip_e = O + (n_e - 1 + 0.8) * sp_e * v_e
     ax.annotate('', xy=tip_e, xytext=O, arrowprops=aw, zorder=999,
                 annotation_clip=False)
@@ -958,6 +1312,16 @@ def plot_dp_network_3d(
     ax.text(tip_e_label[0] + 0.1, tip_e_label[1] + 0.05,
             'Fleet Size ($\\eta^p$)', ha='left', va='bottom',
             fontsize=25, rotation=rot_e)
+    #
+    # perp_e = np.array([v_e[1], -v_e[0]])
+    # TICK_LABEL_GAP = 0.38
+    # for ei, eta_val in enumerate(fleet_sorted):
+    #     tick_pos = O + ei * sp_e * v_e
+    #     anchor = tick_pos + (0.35 * sp_e * v_e if ei == 0 else 0)  # push "6" up the line first
+    #     label_pos = anchor + perp_e * TICK_LABEL_GAP
+    #     ax.text(label_pos[0], label_pos[1], str(eta_val),
+    #             ha='center', va='center', fontsize=20, color='#333',
+    #             rotation=rot_e, zorder=999)
 
     SHOW_ZTICK_LABELS = False  # set True to draw the fleet-size tick values again
     perp_e = np.array([v_e[1], -v_e[0]])
@@ -966,11 +1330,12 @@ def plot_dp_network_3d(
     if SHOW_ZTICK_LABELS:
         for ei, eta_val in enumerate(fleet_sorted):
             tick_pos = O + ei * sp_e * v_e
-            anchor = tick_pos + (0.35 * sp_e * v_e if ei == 0 else 0)
+            anchor = tick_pos + (0.35 * sp_e * v_e if ei == 0 else 0)  # push "6" up the line first
             label_pos = anchor + perp_e * TICK_LABEL_GAP
             ax.text(label_pos[0], label_pos[1], str(eta_val),
                     ha='center', va='center', fontsize=12, color='#333',
                     rotation=rot_e + TICK_LABEL_ROTATION_EXTRA, zorder=999)
+
 
     # ---- y-axis (distinct station configurations) ----
     tip_s = O + (level_max - level_min + 0.8) * sp_s * v_s
@@ -984,107 +1349,13 @@ def plot_dp_network_3d(
     xl = ax.get_xlim()
     yl = ax.get_ylim()
     ax.set_xlim(xl[0] - 4.0, xl[1] + 2.5)
-    ax.set_ylim(O[1] - 0.5, yl[1] + 2.5)   # clip everything below the x-axis; labels are placed in points
+    ax.set_ylim(yl[0] - 5.5, yl[1] + 2.5)
+
     plt.tight_layout()
-
-    # =========================================================================
-    # x-axis ticks, arrows and labels -- laid out in POINTS (not data units),
-    # so spacing no longer depends on how tall the state lattice is. Font size
-    # is shrunk just enough that the widest label fits in one period's width.
-    # =========================================================================
-    TICK_FS, LABEL_FS, STATE_FS, TITLE_FS = 30, 23, 25, 25   # max font sizes
-    MIN_FS = 9                 # never shrink below this
-    FILL = 0.95 #0.85                # share of a period's width a label may use
-    GAP = 6                    # points between stacked items
-    ARROW_LEN = 30 #26             # points (at full font size)
-
-    ann = {}                   # period -> (label, state_str, arrow_color)
-    for idx in range(1, len(res.path)):
-        period, curr_state = res.path[idx]
-        _, prev_state = res.path[idx - 1]
-        S_curr, eta_curr = curr_state
-        S_prev, eta_prev = prev_state
-        n_new_stations = len(S_curr.difference(S_prev))
-        n_new_ets = eta_curr - eta_prev
-        if n_new_stations == 0 and n_new_ets == 0:
-            label = "No change"
-        elif n_new_stations == 0:
-            label = f"{n_new_ets} new ET" + ("s" if n_new_ets != 1 else "")
-        elif n_new_ets == 0:
-            label = f"{n_new_stations} new station" + ("s" if n_new_stations != 1 else "")
-        else:
-            label = (f"{n_new_ets} new ET{'s' if n_new_ets != 1 else ''} and\n"
-                     f"{n_new_stations} new station{'s' if n_new_stations != 1 else ''}")
-        state_str = ("({" + ", ".join(sorted(S_curr, key=lambda x: int(x))) + "}, "
-                     + str(eta_curr) + ")")
-        ann[period] = (label, state_str, fleet_color_by_value[eta_curr])
-
-    fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
-    px2pt = 72.0 / fig.dpi
-    slot_pt = (ax.transData.transform((sp_p, 0))[0]
-               - ax.transData.transform((0, 0))[0]) * px2pt
-
-    def _size_pt(s, fs, **kw):
-        t = ax.text(0, 0, s, fontsize=fs, **kw)
-        bb = t.get_window_extent(renderer)
-        t.remove()
-        return bb.width * px2pt, bb.height * px2pt
-
-    widest = max([_size_pt(l, LABEL_FS, style='italic')[0] for l, _, _ in ann.values()]
-                 + [_size_pt(s, STATE_FS)[0] for _, s, _ in ann.values()]
-                 + [1.0])
-    scale = min(1.0, FILL * slot_pt / widest)
-    label_fs = max(MIN_FS, LABEL_FS * scale)
-    state_fs = max(MIN_FS, STATE_FS * scale)
-    tick_fs = max(MIN_FS, min(TICK_FS, TICK_FS * max(scale, 0.6)))
-    #arrow_len = max(12, ARROW_LEN * scale)
-    arrow_len = ARROW_LEN
-
-    tick_h = _size_pt("$10$", tick_fs)[1]
-    label_h = max([_size_pt(l, label_fs, style='italic')[1] for l, _, _ in ann.values()] + [0])
-    state_h = max([_size_pt(s, state_fs)[1] for _, s, _ in ann.values()] + [0])
-
-    y_tick = -GAP
-    y_arrow_top = y_tick - tick_h - GAP
-    y_arrow_bot = y_arrow_top - arrow_len
-    y_label = y_arrow_bot - GAP
-    y_state = y_label - label_h - GAP
-    y_title = y_state - state_h - 3 * GAP
-
-    def _at(dy):
-        return offset_copy(ax.transData, fig=fig, x=0, y=dy, units='points')
-
-    ax.text(O[0], O[1], f'${initial_period - 1}$', ha='center', va='top',
-            fontsize=tick_fs * 0.7, color='#333', zorder=999,
-            transform=_at(y_tick), clip_on=False)
-    for period in periods_sorted:
-        x = proj(period, level_min, 0)[0]
-        ax.text(x, O[1], f'${period}$', ha='center', va='top', fontsize=tick_fs,
-                color='#333', zorder=999, transform=_at(y_tick), clip_on=False)
-        if period not in ann:
-            continue
-        label, state_str, arrow_color = ann[period]
-        ax.annotate('', xy=(x, O[1]), xycoords=_at(y_arrow_bot),
-                    xytext=(x, O[1]), textcoords=_at(y_arrow_top),
-                    arrowprops=dict(arrowstyle='->', color=arrow_color,
-                                    lw=3.2 * max(scale, 0.6),
-                                    mutation_scale=18 * max(scale, 0.6)),
-                    zorder=999, annotation_clip=False)
-        ax.text(x, O[1], label, ha='center', va='top', fontsize=label_fs,
-                color='#222', style='italic', zorder=999,
-                transform=_at(y_label), clip_on=False)
-        ax.text(x, O[1], state_str, ha='center', va='top', fontsize=state_fs,
-                color='#222', zorder=999, transform=_at(y_state), clip_on=False)
-
-    ax.text(mid_p[0], mid_p[1], 'DP Stage  (Planning Period)', ha='center', va='top',
-            fontsize=TITLE_FS, zorder=999, transform=_at(y_title), clip_on=False)
-
     fmt = out_path.rsplit('.', 1)[-1]
     plt.savefig(out_path, format=fmt, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
-    print(f"3D-style DP network plot saved to {out_path}  "
-          f"(x-axis label font scale = {scale:.2f})")
+    print(f"3D-style DP network plot saved to {out_path}")
 
 
 # =============================================================================
@@ -1765,13 +2036,13 @@ class LabelingDriver:
 # forced to capital cost 0 in every period regardless of what is listed here.
 
 STATION_COST_PARAMS: Dict[str, List[float]] = {
-    "1": [650.0, 350.0],
-    "2": [580.0, 280.0],
-    "3": [560.0, 260.0],
-    "4": [576.0, 276.0],
-    "5": [557.0, 257.0],
-    "6": [648.0, 348.0],
-    "7": [578.0, 278.0],
+    "1": [650000.0, 350000.0],
+    "2": [580000.0, 280000.0],
+    "3": [560000.0, 260000.0],
+    "4": [576000.0, 276000.0],
+    "5": [557000.0, 257000.0],
+    "6": [648000.0, 348000.0],
+    "7": [578000.0, 278000.0],
 }
 
 # ---- Candidate station set (E_bar), base in-service set (E0), planning
@@ -1788,16 +2059,20 @@ FLEET_UNIT_DECREMENT: float   = 5000.0
 # and is treated as infeasible by BOTH pipelines. Use {} if none apply.
 
 INFEASIBLE_FLEET_SIZES_BY_PERIOD: Dict[int, Set[int]] = {
-    2:  {5},
     3:  {5, 6},
-    4:  {5, 6, 7, 8},
+    4:  {5, 6, 7},
     5:  {5, 6, 7, 8, 9},
+    6:  {5, 6, 7, 8, 9},
+    7:  {5, 6, 7, 8, 9, 10, 11},
+    8:  {5, 6, 7, 8, 9, 10, 11, 12, 13},
+    9:  {5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
+    10: {5, 6, 7, 8, 9, 10, 11, 12, 13, 14},
 }
 
-E_BAR: Set[str]                = {"1", "2", "3", "4", "5"}
+E_BAR: Set[str]                = {"1", "2", "3", "4", "5", "6", "7"}
 E0: Set[str]                   = {"1"}
-NUM_PERIODS: int              = 5
-ALLOWED_FLEET_SIZES: List[int] = [5, 6, 7, 8, 9, 10]
+NUM_PERIODS: int              = 10
+ALLOWED_FLEET_SIZES: List[int] = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
 
 # -----------------------------------------------------------------------------
 
@@ -2150,7 +2425,7 @@ def _clear_labeling_artifacts(labeling_dir: str, checkpoint_path: str,
 
 def run_labeling_stages(
         periods: Iterable[int],
-        labeling_dir: str = "../Results/labeling_approach",
+        labeling_dir: str = "DP_FullScale_data/labeling_approach",
         checkpoint_path: Optional[str] = None,
         infeasible_fleet_sizes_by_period: Optional[Dict[int, Set[FleetSize]]] = None,
         states_name: str = "lbl_stage{p}_states.csv",
@@ -2399,7 +2674,7 @@ if __name__ == "__main__":
     # above), then go fill in the remaining blank cells externally in GAMS,
     # save the filled version as bf_mu_grid_filled.csv
     run_bruteforce_export(
-        out_path="DP_benchmark_data/brute_force_solution/bf_states_grid.csv",
+        out_path="DP_FullScale_data/brute_force_solution/bf_states_grid.csv",
         infeasible_fleet_sizes_by_period=INFEASIBLE_FLEET_SIZES_BY_PERIOD,
     )
 
@@ -2409,14 +2684,14 @@ if __name__ == "__main__":
     # matching bf_computation_time_grid.csv. Both are rebuilt from the
     # bf_states_grid.csv template on every run, so re-running is safe and
     # always reflects the current per-period files.
-    period_fleet_files = discover_period_fleet_files("DP_benchmark_data/brute_force_solution")
+    period_fleet_files = discover_period_fleet_files("DP_FullScale_data/brute_force_solution")
     print(f"Discovered {len(period_fleet_files)} (period, fleet size) file(s): "
           f"{sorted(period_fleet_files.keys())}")
     populate_bf_states_grid_and_time_grid(
-        grid_path="DP_benchmark_data/brute_force_solution/bf_states_grid.csv",
+        grid_path="DP_FullScale_data/brute_force_solution/bf_states_grid.csv",
         period_fleet_files=period_fleet_files,
-        cost_output_path="DP_benchmark_data/brute_force_solution/bf_mu_grid_filled.csv",
-        time_output_path="DP_benchmark_data/brute_force_solution/bf_computation_time_grid.csv",
+        cost_output_path="DP_FullScale_data/brute_force_solution/bf_mu_grid_filled.csv",
+        time_output_path="DP_FullScale_data/brute_force_solution/bf_computation_time_grid.csv",
     )
 
     # ---------------- LABELING ----------------
@@ -2439,26 +2714,26 @@ if __name__ == "__main__":
     # -- it would delete the mu CSVs you filled by hand.
     run_labeling_stages(
         periods=range(1, P + 1),
-        labeling_dir="DP_benchmark_data/labeling_approach",
-        checkpoint_path="DP_benchmark_data/labeling_approach/lbl_checkpoint.pkl",
+        labeling_dir="DP_FullScale_data/labeling_approach",
+        checkpoint_path="DP_FullScale_data/labeling_approach/lbl_checkpoint.pkl",
         infeasible_fleet_sizes_by_period=INFEASIBLE_FLEET_SIZES_BY_PERIOD,
-        bf_grid_path="DP_benchmark_data/brute_force_solution/bf_mu_grid_filled.csv",
+        bf_grid_path="DP_FullScale_data/brute_force_solution/bf_mu_grid_filled.csv",
         fresh=True,
     )
 
     #---------------Brute force & Labeling approach----------------------------
     res_bf = run_bruteforce(
-        mu_path="DP_benchmark_data/brute_force_solution/bf_mu_grid_filled.csv",
-        checkpoint_path="DP_benchmark_data/brute_force_solution/bf_result.pkl",
-        values_out_path="DP_benchmark_data/brute_force_solution/bf_node_values_grid.csv",
+        mu_path="DP_FullScale_data/brute_force_solution/bf_mu_grid_filled.csv",
+        checkpoint_path="DP_FullScale_data/brute_force_solution/bf_result.pkl",
+        values_out_path="DP_FullScale_data/brute_force_solution/bf_node_values_grid.csv",
     )
 
     # Once all P periods are imported, finalize:
     res_lbl = run_labeling_finalize(
-        checkpoint_path="DP_benchmark_data/labeling_approach/lbl_checkpoint.pkl",
-        result_path="DP_benchmark_data/labeling_approach/lbl_result.pkl",
-        nd_states_path="DP_benchmark_data/labeling_approach/non_dominated_states.csv",
-        values_out_path="DP_benchmark_data/labeling_approach/lbl_label_values_grid.csv",
+        checkpoint_path="DP_FullScale_data/labeling_approach/lbl_checkpoint.pkl",
+        result_path="DP_FullScale_data/labeling_approach/lbl_result.pkl",
+        nd_states_path="DP_FullScale_data/labeling_approach/non_dominated_states.csv",
+        values_out_path="DP_FullScale_data/labeling_approach/lbl_label_values_grid.csv",
     )
 
     #---- shared config universe (for consistent levels across both figures) ----
@@ -2481,21 +2756,11 @@ if __name__ == "__main__":
         period_floor_source[p] = list(combined)
 
     plot_dp_network_3d(
-        res_bf,
-        allowed_fleet_sizes=allowed_fleet_sizes,
-        E_bar=E_bar,
-        E0=E0,
-        out_path="Figures/Optimal_path_brute_force_benchmark.pdf",
-        configs_universe=used_configs,
-        period_floor_source=period_floor_source,
-    )
-
-    plot_dp_network_3d(
         res_lbl,
         allowed_fleet_sizes=allowed_fleet_sizes,
         E_bar=E_bar,
         E0=E0,
-        out_path="Figures/Optimal_path_labeling_benchmark.pdf",
+        out_path="Figures/Optimal_path_labeling_fullscale.pdf",
         configs_universe=used_configs,
         period_floor_source=period_floor_source,
     )

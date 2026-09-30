@@ -99,6 +99,28 @@ script (period, fleet sizes, open charging links, parameters) and run the file f
 Map figures in `manuscript_figures_plotting.py` that use a Stadia Maps basemap read the API key
 from the `STADIA_API_KEY` environment variable.
 
+## Synthetic instances (Table 5)
+
+All ten instances use the same 20-community network in `synthetic_data/synthetic_data_1/`.
+An instance differs only in which of the four charging stations are open. To run instance
+20-m, set `selected_charging_links` in `synthetic_main.py` (solver) and in
+`synthetic_scripts/CG_Algorithm_Main.py` (proposed approach) to the list below.
+
+| Instance | Open charging stations (`selected_charging_links`) |
+|---|---|
+| 20-1  | [ … ] |
+| 20-2  | [ … ] |
+| 20-3  | [ … ] |
+| 20-4  | [ … ] |
+| 20-5  | [ … ] |
+| 20-6  | [ … ] |
+| 20-7  | [ … ] |
+| 20-8  | [ … ] |
+| 20-9  | [ … ] |
+| 20-10 | [ … ] |
+
+Instance 20-9 is also the instance used for Figure 6.
+
 ## Author
 
 Chinonso Okorie — Florida A&M University (chinonso1.okorie@famu.edu)

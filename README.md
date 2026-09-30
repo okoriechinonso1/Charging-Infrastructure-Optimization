@@ -101,23 +101,33 @@ from the `STADIA_API_KEY` environment variable.
 
 ## Synthetic instances (Table 5)
 
-All ten instances use the same 20-community network in `synthetic_data/synthetic_data_1/`.
-An instance differs only in which of the four charging stations are open. To run instance
-20-m, set `selected_charging_links` in `synthetic_main.py` (solver) and in
-`synthetic_scripts/CG_Algorithm_Main.py` (proposed approach) to the list below.
+All ten instances use the same 20-community network. The input files (complete_nodes,
+complete_travel_data, service_time, waste_demand, charging_links, charging_arcs_params)
+are identical in `synthetic_data/synthetic_data_1/` to `synthetic_data_4/`.
+An instance differs only in which of the four charging stations are open.
 
-| Instance | Open charging stations (`selected_charging_links`) |
-|---|---|
-| 20-1  | [ … ] |
-| 20-2  | [ … ] |
-| 20-3  | [ … ] |
-| 20-4  | [ … ] |
-| 20-5  | [ … ] |
-| 20-6  | [ … ] |
-| 20-7  | [ … ] |
-| 20-8  | [ … ] |
-| 20-9  | [ … ] |
-| 20-10 | [ … ] |
+For the proposed approach, the CG algorithm was run again for some instances to generate
+and select slightly different routes before the charging optimization. Each instance's
+routes are stored in the folder listed below, under `CG_route_exports_2/` and
+`augmented_routes_for_charging_2/`. To reproduce an instance with the proposed approach,
+set `folder_name` and `selected_charging_links` in the charging-second section of
+`synthetic_main.py` as below and use the stored routes. Rerunning
+`synthetic_scripts/CG_Algorithm_Main.py` may give different routes.
+
+For the solver, any of the four folders can be used, since the inputs are identical.
+
+| Instance | Open charging stations (`selected_charging_links`) | Route folder |
+|---|---|---|
+| 20-1  | [ … ] | synthetic_data_[ … ] |
+| 20-2  | [ … ] | synthetic_data_[ … ] |
+| 20-3  | [ … ] | synthetic_data_[ … ] |
+| 20-4  | [ … ] | synthetic_data_[ … ] |
+| 20-5  | [ … ] | synthetic_data_[ … ] |
+| 20-6  | [ … ] | synthetic_data_[ … ] |
+| 20-7  | [ … ] | synthetic_data_[ … ] |
+| 20-8  | [ … ] | synthetic_data_[ … ] |
+| 20-9  | [ … ] | synthetic_data_[ … ] |
+| 20-10 | [ … ] | synthetic_data_[ … ] |
 
 Instance 20-9 is also the instance used for Figure 6.
 

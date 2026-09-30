@@ -224,7 +224,7 @@ def plot_network(depot, communities, charging_on, charging_off, region, filename
     ax.legend(loc='upper right', framealpha=0.9, fontsize=10)
 
     plt.tight_layout()
-    plt.savefig(filename, format='svg')
+    plt.savefig(filename)
     plt.close(fig)
 
 
@@ -883,7 +883,7 @@ if __name__ == "__main__":
     DEPOT_LOCATION = (12.5, 12.5)      # (x, y) coordinates of the depot
     NUM_COMMUNITIES = 20               # Number of community/customer nodes (randomly placed)
     MIN_DISTANCE = 1.0                 # Minimum distance between nodes (for random generation)
-    RANDOM_SEED = 42                 # Random seed for reproducibility (None for random)
+    RANDOM_SEED = 52                # Random seed for reproducibility (None for random)
 
     # -------- OPTION 1: Random Charging Stations --------
     # Uncomment these lines to randomly generate charging stations:
@@ -918,16 +918,21 @@ if __name__ == "__main__":
     # All files for this instance go to <project root>/synthetic_data/<SUBFOLDER>/.
     # The project root is the parent of synthetic_scripts/, so paths are correct
     # regardless of which folder the script is run from.
-    SUBFOLDER    = "synthetic_data_1"
+    SUBFOLDER    = "synthetic_data_2"
     PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     OUTPUT_DIR   = os.path.join(PROJECT_ROOT, "synthetic_data", SUBFOLDER)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+    # The network plot goes to the project's Figures/ folder (data files stay in
+    # OUTPUT_DIR). The same filename is used on every run, so it is overwritten.
+    FIGURES_DIR = os.path.join(PROJECT_ROOT, "Figures")
+    os.makedirs(FIGURES_DIR, exist_ok=True)
 
     # Base network and model parameters
     NODE_FILE          = os.path.join(OUTPUT_DIR, "network_nodes.csv")
     LINK_FILE          = os.path.join(OUTPUT_DIR, "network_links.csv")
     CHARGING_LINK_FILE = os.path.join(OUTPUT_DIR, "charging_links.csv")
-    PLOT_FILE          = os.path.join(OUTPUT_DIR, "network_plot.svg")
+    PLOT_FILE          = os.path.join(FIGURES_DIR, "synthetic_network.pdf")
     TRAVEL_DATA_FILE   = os.path.join(OUTPUT_DIR, "travel_data.csv")
     WASTE_DEMAND_FILE  = os.path.join(OUTPUT_DIR, "waste_demand.csv")
     SERVICE_TIME_FILE  = os.path.join(OUTPUT_DIR, "service_time.csv")
@@ -1015,8 +1020,9 @@ if __name__ == "__main__":
     print(f"Total links: {len(links)}")
     print(f"Travel arcs saved: {len(travel_parameter)}")
     print(f"\nFiles saved in {OUTPUT_DIR}:")
-    for f in (NODE_FILE, LINK_FILE, CHARGING_LINK_FILE, PLOT_FILE,
+    for f in (NODE_FILE, LINK_FILE, CHARGING_LINK_FILE,
               TRAVEL_DATA_FILE, WASTE_DEMAND_FILE, SERVICE_TIME_FILE,
               COMPLETE_NODE_FILE, COMPLETE_LINK_FILE, COMPLETE_TRAVEL_DATA_FILE):
         print(f"  - {os.path.basename(f)}")
+    print(f"Network plot saved to {PLOT_FILE}")
     print("=" * 60)

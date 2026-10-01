@@ -13,7 +13,7 @@ import pandas as pd
 import geopandas as gpd
 import contextily as cx
 
-os.makedirs('Figures', exist_ok=True)
+os.makedirs('Results', exist_ok=True)
 
 "Dynamic Programming illustration: Figure 5"
 
@@ -223,7 +223,7 @@ ax.set_ylim(yl[0] - 6.5, yl[1] + 2.5)   # extra bottom room for annotations
 
 plt.tight_layout()
 for ext in ('png', 'pdf', 'svg'):
-    plt.savefig(f'Figures/Dynamic_Programming_illustration_v4.{ext}',
+    plt.savefig(f'Results/Dynamic_Programming_illustration_v4.{ext}',
                 dpi=300, bbox_inches='tight', facecolor='white')
 print("Done.")
 
@@ -233,23 +233,37 @@ print("Done.")
 "Impact of fleet size and driving range: Figure 6"
 
 # ---- Data ----
-# Driving range R (miles)
-R = [80, 70, 60, 50, 40, 30]
+# Read from Results/impact_of_eta_and_R.csv. Columns, by position: eta (only
+# filled on the first row of each eta block), No. of ETs used, Driving Range R
+# (miles), Total cost, Computation time (sec).
+fig6_data = pd.read_csv('Results/impact_of_eta_and_R.csv')
+fig6_data.columns = ['eta', 'ets_used', 'R', 'total_cost', 'computation_time']
+fig6_data['eta'] = fig6_data['eta'].ffill().astype(int)
 
-# Total cost is identical across eta = 2,3,4,5 (per the provided data)
-total_cost = [272.7, 272.7, 280.7, 289.6, 302.9, 419.6]
 
-# Number of ETs used - constant at 2 across all eta and all R
-ets_used = 2
+def fig6_rows(eta):
+    return fig6_data[fig6_data['eta'] == eta].reset_index(drop=True)
 
-# Computation time (right-hand y-axis), same order as R
-computation_time = [627, 627, 1255, 2919, 8, 7]
 
-# R = 40 and R = 30 have comparatively tiny computation times that would
-# flatten the larger values on the right axis, so exclude them from the
-# computation-time series (the total-cost series still uses the full R).
-R_comp_time = R[:4]
-computation_time = computation_time[:4]
+# R, total cost and No. of ETs used per point, in file order (from eta = 2;
+# all eta values cover the same R values)
+R = fig6_rows(2)['R'].tolist()
+total_cost = fig6_rows(2)['total_cost'].tolist()
+ets_used = fig6_rows(2)['ets_used'].astype(int).tolist()
+
+# Computation time (right-hand y-axis). R = 40 and R = 30 are left blank in the
+# CSV (their comparatively tiny times would flatten the larger values on the
+# right axis), so only rows with a computation time are plotted.
+timed = fig6_rows(2).dropna(subset=['computation_time'])
+R_comp_time = timed['R'].tolist()
+computation_time = timed['computation_time'].tolist()
+
+# eta = 3, 4 and 5 give identical results, so they are drawn as one line
+# (from eta = 3's rows) with the shared legend entry below.
+for eta in (4, 5):
+    if not fig6_rows(eta)[['R', 'total_cost']].equals(fig6_rows(3)[['R', 'total_cost']]):
+        raise ValueError(f"Figure 6: eta = {eta} results differ from eta = 3, "
+                         f"so the 'eta = 3, 4 or 5' legend entry no longer holds.")
 
 fleet_sizes = [2, 3]
 
@@ -271,19 +285,20 @@ fig, ax = plt.subplots(figsize=(7.5, 5.5))
 offset_step = 0.0
 for i, eta in enumerate(fleet_sizes):
     jitter = (i - (len(fleet_sizes) - 1) / 2) * offset_step
-    R_jittered = [r + jitter for r in R]
+    rows = fig6_rows(eta)
+    R_jittered = [r + jitter for r in rows['R']]
     ax.plot(
-        R_jittered, total_cost,
+        R_jittered, rows['total_cost'],
         marker=markers[i], color=colors[i], linestyle='-',
         linewidth=1.6, markersize=8, markerfacecolor=colors[i],
         markeredgecolor=colors[i], markeredgewidth=1.0, alpha=0.9,
         label=legend_labels[i], zorder=3
     )
 
-# Annotate that only 2 ETs are ever used, regardless of eta or R
-for r, c in zip(R, total_cost):
+# Annotate the number of ETs used at each R (2 everywhere in the data)
+for r, c, n in zip(R, total_cost, ets_used):
     ax.annotate(
-        f'{ets_used} ETs',
+        f'{n} ETs',
         xy=(r, c), xytext=(0, 8), textcoords='offset points',
         ha='center', va='bottom', fontsize=12, color='black', alpha=0.7
     )
@@ -341,7 +356,7 @@ ax.legend(ordered_handles, desired_order, fontsize=9, title_fontsize=9, loc='upp
 #title='Fleet Size',
 
 plt.tight_layout()
-plt.savefig('Figures/fleet_size_analysis.pdf', bbox_inches='tight')
+plt.savefig('Results/fleet_size_analysis.pdf', bbox_inches='tight')
 print("Saved plots.")
 
 
@@ -532,7 +547,7 @@ gdf = gpd.GeoDataFrame(
 )
 
 # 5. Load & buffer the city boundary
-boundaries = gpd.read_file("Figures/Tallahassee_City_Limit.geojson").to_crs("EPSG:4326")
+boundaries = gpd.read_file("Results/Tallahassee_City_Limit.geojson").to_crs("EPSG:4326")
 boundaries_proj = boundaries.to_crs(epsg=3857)
 
 # 5a. Buffer by BUFFER_METERS. Bump this if community nodes are getting
@@ -675,7 +690,7 @@ ax.legend(
 ax.set_axis_off()
 ax.set_aspect('equal', 'box')
 plt.tight_layout()
-plt.savefig("Figures/Tallahassee_region.svg", bbox_inches='tight')
+plt.savefig("Results/Tallahassee_region.svg", bbox_inches='tight')
 
 
 

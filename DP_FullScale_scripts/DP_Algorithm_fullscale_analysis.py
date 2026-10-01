@@ -2652,7 +2652,7 @@ if __name__ == "__main__":
 
     # ---------------- WORKING DIRECTORY ----------------
     # This script lives in <project root>/DP_benchmark_scripts/, but every path
-    # below (DP_benchmark_data/..., Figures/...) is relative to the PROJECT
+    # below (DP_benchmark_data/..., Results/...) is relative to the PROJECT
     # ROOT. Switch there first so the script runs correctly no matter which
     # working directory the IDE / terminal launches it from.
     os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -2760,7 +2760,7 @@ if __name__ == "__main__":
         allowed_fleet_sizes=allowed_fleet_sizes,
         E_bar=E_bar,
         E0=E0,
-        out_path="Figures/Optimal_path_labeling_fullscale.pdf",
+        out_path="Results/Optimal_path_labeling_fullscale.pdf",
         configs_universe=used_configs,
         period_floor_source=period_floor_source,
     )

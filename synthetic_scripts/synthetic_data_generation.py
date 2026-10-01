@@ -918,14 +918,14 @@ if __name__ == "__main__":
     # All files for this instance go to <project root>/synthetic_data/<SUBFOLDER>/.
     # The project root is the parent of synthetic_scripts/, so paths are correct
     # regardless of which folder the script is run from.
-    SUBFOLDER    = "synthetic_data_2"
+    SUBFOLDER    = "synthetic_data"
     PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     OUTPUT_DIR   = os.path.join(PROJECT_ROOT, "synthetic_data", SUBFOLDER)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-    # The network plot goes to the project's Figures/ folder (data files stay in
+    # The network plot goes to the project's Results/ folder (data files stay in
     # OUTPUT_DIR). The same filename is used on every run, so it is overwritten.
-    FIGURES_DIR = os.path.join(PROJECT_ROOT, "Figures")
+    FIGURES_DIR = os.path.join(PROJECT_ROOT, "Results")
     os.makedirs(FIGURES_DIR, exist_ok=True)
 
     # Base network and model parameters

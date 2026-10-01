@@ -8,10 +8,10 @@ import math
 
 # Route figures go inside each period folder: <period folder>/Figures/
 # (not fleet-size specific, since CG generates the same routes for every
-# fleet size). FIGURES_DIR (<project root>/Figures) is only used by the
+# fleet size). FIGURES_DIR (<project root>/Results) is only used by the
 # standalone plot_network_with_* functions, which are not tied to a period folder.
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FIGURES_DIR = os.path.join(PROJECT_ROOT, "Figures")
+FIGURES_DIR = os.path.join(PROJECT_ROOT, "Results")
 
 
 def _figures_folder(folder, id):

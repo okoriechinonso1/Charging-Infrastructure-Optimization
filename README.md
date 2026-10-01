@@ -62,7 +62,7 @@ data generation ──► route generation (column generation) ──► chargin
 | `DP_benchmark_data/` | Benchmark period data, route exports, brute-force results |
 | `DP_FullScale_scripts/` | Full-scale DP (10 periods, 7 candidate stations, fleet sizes 5–20) |
 | `DP_FullScale_data/` | Tallahassee network, per-period data, brute-force and labeling results |
-| `Figures/` | Manuscript figures |
+| `Results/` | Manuscript figures |
 
 Each period folder contains `{period}_nodes.csv`, `{period}_links.csv`,
 `{period}_travel_data.csv`, `{period}_service_time.csv`, `{period}_waste_demand.csv`,

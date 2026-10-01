@@ -121,8 +121,8 @@ def plot_networkx_graph(evrp_main_data, arc_travel, nodes_data):
     plt.axis('on')
     plt.tight_layout()
 
-    os.makedirs("Figures", exist_ok=True)
-    plt.savefig("Figures/VehicleRoutes.svg", format='svg')
+    os.makedirs("Results", exist_ok=True)
+    plt.savefig("Results/VehicleRoutes.svg", format='svg')
 
     # === Return depot node as ['i5+', 'i5-'] format ===
     if depot_id is None:
@@ -257,8 +257,8 @@ def plot_single_route_network(evrp_main_data, arc_travel, nodes_data):
     plt.axis('on')
     plt.tight_layout()
 
-    os.makedirs("Figures", exist_ok=True)
-    plt.savefig("Figures/SingleRoute.svg", format='svg', dpi=300)
+    os.makedirs("Results", exist_ok=True)
+    plt.savefig("Results/SingleRoute.svg", format='svg', dpi=300)
 
     # === Return depot ===
     if depot_id is None:
@@ -336,7 +336,7 @@ def generate_plots(arc_travel, time_level, SoC_level, depot_nodes, max_soc, max_
         plt.setp(ax1.get_xticklabels(), rotation=45, ha='right')
 
         # Save and show plot
-        plt.savefig(f'Figures/Performance Metrics_Vehicle {vehicle_id}.svg')
+        plt.savefig(f'Results/Performance Metrics_Vehicle {vehicle_id}.svg')
 
     return vehicle_tour_paths
 
@@ -439,8 +439,8 @@ def generate_plots_single_vehicle(
     plt.setp(ax1.get_xticklabels(), rotation=45, ha='right')
 
     # Save
-    os.makedirs("Figures", exist_ok=True)
-    plt.savefig('Figures/Performance_Metrics_Single_Vehicle.svg', dpi=300)
+    os.makedirs("Results", exist_ok=True)
+    plt.savefig('Results/Performance_Metrics_Single_Vehicle.svg', dpi=300)
 
     return tour_path
 
